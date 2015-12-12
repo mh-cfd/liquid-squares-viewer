@@ -10,7 +10,7 @@
 #include "globals.h"
 #include "myrender.h"
 #include "myscreenshot.h"
-
+#include "vsofont.h"
 //#include <sys/time.h>
 
 #define VIEW_U 1
@@ -827,6 +827,9 @@ void display(void)
 
 
     glLoadIdentity();
+
+
+
 glPushMatrix();
     // glTranslatef(0,0.4,0);
     // glRotatef(-90,0,0,1);
@@ -1041,6 +1044,46 @@ glPushMatrix();
         glVertex2f(3*(-0.75+i*1.5/4),0.94*3);
      glEnd();
     }
+
+
+
+
+
+
+    /////////////
+
+
+    glColor3f(0,0,0);
+
+/*
+    vsofont_write_string_billboard_centered(examplefont, "Examplefont", 0, 0, 0);
+    vsofont_write_string_billboard(clone, "CLONE", 0, -0.2, 0);
+    vsofont_write_string_billboard_centered(proportional, "PROPORTIONAL", 0, -0.4, 0);
+    vsofont_write_string_2D_centered(proportional, "NIIIIIICE", 0, -0.8);
+
+    glLineWidth(2);
+    vsofont_write_string_2D(proportional, "Proportional", -0.1, -0.6);*/
+    glLineWidth(2);
+ /*   char tmp[100];
+    sprintf(tmp, "INTERESTING:%c%c%c%c", 3, 1, 2, 0);
+    vsofont_write_string_2D_centered(proportional, tmp, 0, 0.2);
+*/
+    /* antialiasing */
+    glEnable(GL_LINE_SMOOTH);
+    glHint(GL_LINE_SMOOTH, GL_NICEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  vsofont_write_string_2D(proportional, "Proportional", -0.1, -0.6);
+    vsofont_write_string_2D_centered(proportional, "0.123456789e", 0, 0.4);
+
+    glDisable(GL_LINE_SMOOTH);
+    glDisable(GL_BLEND);
+
+
+
+
+
+    //////////
 
 
     glPointSize(3.0);
@@ -2584,11 +2627,13 @@ void init()
         cross_map_ijk[i].i=i*20+10; cross_map_ijk[i].j=i*5+10;
     }
 
-
+/*
     //  convert_uvw_text("c:\\user\\devel\\tecio_loader\\tecload\\1761_rough_uvw.dat",0);
 
 
     // convert_sat_text("c:\\user\\devel\\tecio_loader\\tecload\\ground.dat");
+
+
     load_sat_bin("c:\\user\\devel\\tecio_loader\\tecload\\ground.dat.bin");
 
     load_uvw_bin("c:\\user\\devel\\tecio_loader\\tecload\\1761_rough_uvw.dat.bin",0);
@@ -2601,7 +2646,7 @@ void init()
     load_xyz_bin("c:\\user\\devel\\tecio_loader\\tecload\\xyz.dat.bin");
     load_uvw_time_bin("c:\\user\\devel\\tecio_loader\\tecload\\uvw_tmean_hyb.dat.bin");
 
-
+*/
 
     for (int i=0;i<NX;i++)
     {
@@ -2662,6 +2707,10 @@ void init()
             }
         }
     }*/
+
+
+
+    font_init();
 }
 
 int main(int argc, char** argv)

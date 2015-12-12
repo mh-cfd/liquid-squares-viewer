@@ -9,14 +9,17 @@ SOURCES += \
     Main.cpp \
     globals.cpp \
     mydata.cpp \
-    myscreenshot.cpp
+    myscreenshot.cpp \
+    vsofont.c
 
 HEADERS += \
     globals.h \
     my_io.h \
     myrender.h \
     mydata.h \
-    myscreenshot.h
+    myscreenshot.h \
+    vsofont.h \
+    defines.h
 
 LIBS+= -lopengl32 -lglu32 -lglut32
 
