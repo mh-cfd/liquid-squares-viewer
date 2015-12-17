@@ -11,6 +11,8 @@
 #include "myrender.h"
 #include "myscreenshot.h"
 #include "vsofont.h"
+#include "my_io.h"
+#include "mytracers.h"
 //#include <sys/time.h>
 
 #define VIEW_U 1
@@ -37,774 +39,13 @@ void animate_tracers();
 void rearrange_tracers();
 
 void sweep();
-int view=0;
-
-int k_curr=26;
-double ck=13.0;
 
 
-int i_prof[10]={50,60,70,80,90,100,100,100,100,100};
-int j_prof[10]={50,50,50,50,50,40,30,20,10,60};
-
-int curr_prof=0;
-int prof_num=8;
-
-int screen_count=1;
-float alpha_u=0.5;
-
-float curr_coord=10.5;
-myRender *render;
-
-
-int i_min(int a,int b)
-{
-    if (a>b) return b;
-    else return a;
-}
-
-
-
-int i_max(int a,int b)
-{
-    if (a>b) return a;
-    else return b;
-}
 
 void draw_prof(int i,int j);
 void draw_tracers();
 
 void filter_kplane(float var_[NX][NY][NZ],int k);
-
-void load_xyz_text(char * name)
-{
-
-
-
-    int i,j,k,i1;
-
-
-    FILE* file;
-
-    float f1,f2,f3,f4,f5,f6;
-    int n;
-    FILE* pFile;
-
-    char mystring [251];
-
-
-
-    file = fopen( name, "r" );
-
-
-    n=0;
-
-
-    for (i=0;i<9;i++){
-        fgets (mystring , 250 , file);
-        printf ("%s \n",mystring    );   }
-
-
-    for (k=0;k<NZ;k++)
-    {
-
-
-
-        for (j=0;j<NY;j++)
-        {
-
-            for (i=0;i<NX;i++)
-            {
-
-                // n++;
-                //printf("line_num=%d \n", n);
-
-                f4=0.0; f5=0.0; f6=0.0;
-
-                fgets (mystring , 250 , file);
-
-                sscanf (mystring, "%f %f %f ", &f1,&f2,&f3);
-
-                x_[i][j][k]=f1;
-                y_[i][j][k]=f2;
-                z_[i][j][k]=f3;
-
-
-            }
-        }
-
-    }
-
-
-
-    fclose(file);
-
-
-
-    char name2[2048];
-
-    sprintf(name2,"%s.bin",name);
-
-
-
-    file=fopen(name2,"wb");
-
-    i=NX;j=NY;k=NZ;
-    fwrite(&i,sizeof(int),1,file);
-    fwrite(&j,sizeof(int),1,file);
-    fwrite(&k,sizeof(int),1,file);
-
-    for (k=0;k<NZ;k++)
-    {
-
-
-
-        for (j=0;j<NY;j++)
-        {
-
-            for (i=0;i<NX;i++)
-            {
-
-
-                f1=x_[i][j][k];
-                f2=y_[i][j][k];
-                f3=z_[i][j][k];
-
-                fwrite(&f1,sizeof(float),1,file);
-                fwrite(&f2,sizeof(float),1,file);
-                fwrite(&f3,sizeof(float),1,file);
-            }
-        }
-
-    }
-    fclose(file);
-
-
-
-
-}
-
-
-
-
-
-
-void convert_uvw_text(char * name,int n)
-{
-
-
-
-    int i,j,k,l,i1;
-
-
-    FILE* file;
-
-    float f1,f2,f3,f4,f5,f6,f7,f8,f9;
-
-    FILE* pFile;
-
-    char mystring [251];
-
-
-
-    file = fopen( name, "r" );
-
-
-
-
-
-    for (i=0;i<15;i++){
-        fgets (mystring , 250 , file);
-        printf ("%s \n",mystring    );   }
-
-
-    for (k=0;k<NZ;k++)
-    {
-
-
-
-        for (j=0;j<NY;j++)
-        {
-
-            for (i=0;i<NX;i++)
-            {
-
-                // n++;
-                //printf("line_num=%d \n", n);
-
-                f4=0.0; f5=0.0; f6=0.0;
-
-                fgets (mystring , 250 , file);
-
-                sscanf (mystring, "%f %f %f %f %f %f %f %f %f ", &f1,&f2,&f3,&f4,&f5,&f6,&f7,&f8,&f9);
-
-                u_[n][i][j][k]=f1;
-                v_[n][i][j][k]=f2;
-                w_[n][i][j][k]=f3;
-
-                te_[n][i][j][k]=f4;
-                vis_[n][i][j][k]=f5;
-                vart_[n][i][j][k]=f6;
-
-                temp_[n][i][j][k]=f7;
-                wtt_[n][i][j][k]=f8;
-                humid_[n][i][j][k]=f9;
-
-
-            }
-        }
-
-    }
-
-
-
-    fclose(file);
-
-
-
-    char name2[2048];
-
-    sprintf(name2,"%s.bin",name);
-
-
-
-    file=fopen(name2,"wb");
-
-    i=NX;j=NY;k=NZ;l=9;
-    fwrite(&i,sizeof(int),1,file);
-    fwrite(&j,sizeof(int),1,file);
-    fwrite(&k,sizeof(int),1,file);
-    fwrite(&l,sizeof(int),1,file);
-
-
-    char names[MAX_VAR_COUNT][MAX_NAME_LEN];
-
-    for (i=0;i<l;i++)
-    {
-
-        for (j=0;j<MAX_NAME_LEN;j++)
-        {
-
-            char ch=names[i][j];
-            fwrite(&ch,sizeof(char),1,file);
-
-        }
-
-
-    }
-
-    for (k=0;k<NZ;k++)
-    {
-
-
-
-        for (j=0;j<NY;j++)
-        {
-
-            for (i=0;i<NX;i++)
-            {
-
-
-
-
-                f1=u_[n][i][j][k];
-                f2=v_[n][i][j][k];
-                f3=w_[n][i][j][k];
-
-                f4=te_[n][i][j][k];
-                f5=vis_[n][i][j][k];
-                f6=vart_[n][i][j][k];
-
-                f7=temp_[n][i][j][k];
-                f8=wtt_[n][i][j][k];
-                f9=humid_[n][i][j][k];
-
-
-
-                fwrite(&f1,sizeof(float),1,file);
-                fwrite(&f2,sizeof(float),1,file);
-                fwrite(&f3,sizeof(float),1,file);
-
-
-                fwrite(&f4,sizeof(float),1,file);
-                fwrite(&f5,sizeof(float),1,file);
-                fwrite(&f6,sizeof(float),1,file);
-
-
-                fwrite(&f7,sizeof(float),1,file);
-                fwrite(&f8,sizeof(float),1,file);
-                fwrite(&f9,sizeof(float),1,file);
-
-            }
-        }
-
-    }
-    fclose(file);
-
-
-
-
-}
-
-
-
-
-
-void convert_sat_text(char * name)
-{
-
-
-
-    int i,j,k,l,i1;
-
-
-    FILE* file;
-
-    float f1,f2,f3,f4,f5,f6,f7,f8,f9;
-    int n;
-    FILE* pFile;
-
-    char mystring [251];
-
-
-
-    file = fopen( name, "r" );
-
-
-    n=0;
-
-
-    for (i=0;i<12;i++){
-        fgets (mystring , 250 , file);
-        printf ("%s \n",mystring    );   }
-
-
-
-    for (j=0;j<NY_SAT;j++)
-    {
-
-        for (i=0;i<NX_SAT;i++)
-        {
-
-            // n++;
-            //printf("line_num=%d \n", n);
-
-            f4=0.0; f5=0.0; f6=0.0;
-
-            fgets (mystring , 250 , file);
-
-            sscanf (mystring, "%f %f %f %f %f %f", &f1,&f2,&f3,&f4,&f5,&f6);
-
-            x_sat[i][j]=f1;
-            y_sat[i][j]=f2;
-            z_sat[i][j]=f3;
-
-            r_sat[i][j]=f4;
-            g_sat[i][j]=f5;
-            b_sat[i][j]=f6;
-
-
-
-
-        }
-    }
-
-
-
-
-
-    fclose(file);
-
-
-
-    char name2[2048];
-
-    sprintf(name2,"%s.bin",name);
-
-
-
-    file=fopen(name2,"wb");
-
-    i=NX_SAT;j=NY_SAT;k=1;l=6;
-    fwrite(&i,sizeof(int),1,file);
-    fwrite(&j,sizeof(int),1,file);
-    fwrite(&k,sizeof(int),1,file);
-    fwrite(&l,sizeof(int),1,file);
-
-
-    char names[MAX_VAR_COUNT][MAX_NAME_LEN];
-
-    for (i=0;i<l;i++)
-    {
-
-        for (j=0;j<MAX_NAME_LEN;j++)
-        {
-
-            char ch=names[i][j];
-            fwrite(&ch,sizeof(char),1,file);
-
-        }
-
-
-    }
-
-
-
-
-    for (j=0;j<NY_SAT;j++)
-    {
-
-        for (i=0;i<NX_SAT;i++)
-        {
-
-
-
-
-            f1=x_sat[i][j];
-            f2=y_sat[i][j];
-            f3=z_sat[i][j];
-
-            f4=r_sat[i][j];
-            f5=g_sat[i][j];
-            f6=b_sat[i][j];
-
-
-            fwrite(&f1,sizeof(float),1,file);
-            fwrite(&f2,sizeof(float),1,file);
-            fwrite(&f3,sizeof(float),1,file);
-
-
-            fwrite(&f4,sizeof(float),1,file);
-            fwrite(&f5,sizeof(float),1,file);
-            fwrite(&f6,sizeof(float),1,file);
-
-
-
-
-        }
-    }
-
-
-    fclose(file);
-
-
-
-
-}
-
-
-
-
-
-void load_sat_bin(char * name)
-{
-
-
-
-    int i,j,k,l,i1;
-
-
-    FILE* file;
-
-    float f1,f2,f3,f4,f5,f6,f7,f8,f9;
-    int n;
-    FILE* pFile;
-
-    char mystring [251];
-
-
-
-
-
-
-    file=fopen(name,"rb");
-
-    i=NX_SAT;j=NY_SAT;k=1;l=6;
-    fread(&i,sizeof(int),1,file);
-    fread(&j,sizeof(int),1,file);
-    fread(&k,sizeof(int),1,file);
-    fread(&l,sizeof(int),1,file);
-
-
-    char names[MAX_VAR_COUNT][MAX_NAME_LEN];
-
-    for (i=0;i<l;i++)
-    {
-
-        for (j=0;j<MAX_NAME_LEN;j++)
-        {
-
-            char ch=names[i][j];
-            fread(&ch,sizeof(char),1,file);
-
-        }
-
-
-    }
-
-
-
-
-    for (j=0;j<NY_SAT;j++)
-    {
-
-        for (i=0;i<NX_SAT;i++)
-        {
-
-
-
-
-
-
-
-            fread(&f1,sizeof(float),1,file);
-            fread(&f2,sizeof(float),1,file);
-            fread(&f3,sizeof(float),1,file);
-
-
-            fread(&f4,sizeof(float),1,file);
-            fread(&f5,sizeof(float),1,file);
-            fread(&f6,sizeof(float),1,file);
-
-
-            x_sat[i][j]=f1;
-            y_sat[i][j]=f2;
-            z_sat[i][j]=f3;
-
-            r_sat[i][j]=f4;
-            g_sat[i][j]=f5;
-            b_sat[i][j]=f6;
-
-        }
-    }
-
-
-    fclose(file);
-
-
-
-
-}
-
-
-
-void load_uvw_bin(char * name,int n)
-{
-
-
-
-    int i,j,k,l,i1;
-
-
-    FILE* file;
-
-    float f1,f2,f3,f4,f5,f6,f7,f8,f9;
-
-    FILE* pFile;
-
-    char mystring [251];
-
-
-
-
-
-
-    //добавить поиск соответствий по именам
-
-
-    file=fopen(name,"rb");
-
-    i=NX;j=NY;k=NZ;l=9;
-    fread(&i,sizeof(int),1,file);
-    fread(&j,sizeof(int),1,file);
-    fread(&k,sizeof(int),1,file);
-    fread(&l,sizeof(int),1,file);
-
-
-    char names[MAX_VAR_COUNT][MAX_NAME_LEN];
-
-    for (i=0;i<l;i++)
-    {
-
-        for (j=0;j<MAX_NAME_LEN;j++)
-        {
-
-            char ch=names[i][j];
-            fread(&ch,sizeof(char),1,file);
-
-        }
-
-
-    }
-
-    for (k=0;k<NZ;k++)
-    {
-
-
-
-        for (j=0;j<NY;j++)
-        {
-
-            for (i=0;i<NX;i++)
-            {
-
-                fread(&f1,sizeof(float),1,file);
-                fread(&f2,sizeof(float),1,file);
-                fread(&f3,sizeof(float),1,file);
-
-
-                fread(&f4,sizeof(float),1,file);
-                fread(&f5,sizeof(float),1,file);
-                fread(&f6,sizeof(float),1,file);
-
-
-                fread(&f7,sizeof(float),1,file);
-                fread(&f8,sizeof(float),1,file);
-                fread(&f9,sizeof(float),1,file);
-
-                u_[n][i][j][k]=f1;
-                v_[n][i][j][k]=f2;
-                w_[n][i][j][k]=f3;
-
-                te_[n][i][j][k]=f4;
-                vis_[n][i][j][k]=f5;
-                vart_[n][i][j][k]=f6;
-
-                temp_[n][i][j][k]=f7;
-                wtt_[n][i][j][k]=f8;
-                humid_[n][i][j][k]=f9;
-
-            }
-        }
-
-    }
-    fclose(file);
-
-
-
-
-}
-
-void load_xyz_bin(char * name)
-{
-
-
-
-    int i,j,k,i1;
-
-
-    FILE* file;
-
-    float f1,f2,f3,f4,f5,f6;
-
-
-
-
-
-
-
-    file=fopen(name,"rb");
-
-    //i=NX;j=NY;k=NZ;
-    fread(&i,sizeof(int),1,file);
-    fread(&j,sizeof(int),1,file);
-    fread(&k,sizeof(int),1,file);
-
-    for (k=0;k<NZ;k++)
-    {
-
-
-
-        for (j=0;j<NY;j++)
-        {
-
-            for (i=0;i<NX;i++)
-            {
-
-
-                fread(&f1,sizeof(float),1,file);
-                fread(&f2,sizeof(float),1,file);
-                fread(&f3,sizeof(float),1,file);
-
-
-
-                x_[i][j][k]=f1;
-                y_[i][j][k]=f2;
-                z_[i][j][k]=f3;
-
-
-            }
-        }
-
-    }
-    fclose(file);
-
-
-
-
-}
-
-
-
-
-
-void load_uvw_time_bin(char * name)
-{
-
-
-
-    int i,j,k,i1;
-
-
-    FILE* file;
-
-    float f1,f2,f3,f4,f5,f6;
-
-
-
-
-
-
-
-    file=fopen(name,"rb");
-
-    //i=NX;j=NY;k=NZ;
-    fread(&i,sizeof(int),1,file);
-    fread(&j,sizeof(int),1,file);
-    fread(&k,sizeof(int),1,file);
-
-    for (k=0;k<NZ;k++)
-    {
-
-
-
-        for (j=0;j<NY;j++)
-        {
-
-            for (i=0;i<NX;i++)
-            {
-
-
-                fread(&f1,sizeof(float),1,file);
-                fread(&f2,sizeof(float),1,file);
-                fread(&f3,sizeof(float),1,file);
-
-
-
-                u_t[i][j][k]=f1;
-                v_t[i][j][k]=f2;
-                w_t[i][j][k]=f3;
-
-
-            }
-        }
-
-    }
-    fclose(file);
-
-
-
-
-}
 
 
 
@@ -863,7 +104,7 @@ glPushMatrix();
 */
 
     // render->draw_sat();
-    render->draw_k_plane(temp_[1],&(render->tbls[0]),k_curr,12.25f,13.0f);//12.8f,15.6f);
+    //render->draw_k_plane(humid_[2],&(render->tbls[0]),k_curr,0.0f,0.5f);//12.8f,15.6f);
 
     /*    for(i=0;i<prof_num;i++)
     {
@@ -873,9 +114,9 @@ glPushMatrix();
     }
 */
 
-    draw_cross();
+    draw_cross_hum();
 
-    // draw_tracers();
+     draw_tracers();
 
     /*    for (i=1;i<NX-1;i++)
     {
@@ -1063,7 +304,7 @@ glPushMatrix();
 
     glLineWidth(2);
     vsofont_write_string_2D(proportional, "Proportional", -0.1, -0.6);*/
-    glLineWidth(2);
+    glLineWidth(1.5);
  /*   char tmp[100];
     sprintf(tmp, "INTERESTING:%c%c%c%c", 3, 1, 2, 0);
     vsofont_write_string_2D_centered(proportional, tmp, 0, 0.2);
@@ -1073,8 +314,7 @@ glPushMatrix();
     glHint(GL_LINE_SMOOTH, GL_NICEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  vsofont_write_string_2D(proportional, "Proportional", -0.1, -0.6);
-    vsofont_write_string_2D_centered(proportional, "0.123456789e", 0, 0.4);
+ //    vsofont_write_string_2D_centered(proportional, "0.123456789e", 0, 0.4);
 
     glDisable(GL_LINE_SMOOTH);
     glDisable(GL_BLEND);
@@ -1206,11 +446,9 @@ void SpecialInput(int key, int x, int y)
     }
         //do something here
         break;
-    }
 
-    /*
-    switch(key)
-     {
+
+
 
     case GLUT_KEY_PAGE_UP:
         //do something here
@@ -1218,7 +456,7 @@ void SpecialInput(int key, int x, int y)
         alpha_u+=0.05;
         if (alpha_u>1.0)
             alpha_u=1.0;
-        animate_tracers();
+       // animate_tracers();
         printf("alpha_u=%f\n",alpha_u);
     }
         break;
@@ -1229,7 +467,7 @@ void SpecialInput(int key, int x, int y)
         alpha_u-=0.05;
         if (alpha_u<0.0)
             alpha_u=0.0;
-        animate_tracers();
+       // animate_tracers();
         printf("alpha_u=%f\n",alpha_u);
     }
         break;
@@ -1246,12 +484,12 @@ void SpecialInput(int key, int x, int y)
     break;
     case GLUT_KEY_F11:
     {
- filter_kplane(temp_,0);
+ //filter_kplane(temp_,0);
     }
         //do something here
         break;
      }
-*/
+
     glutPostRedisplay();
 }
 
@@ -1304,7 +542,7 @@ void kb(unsigned char key, int x, int y)
     {
 
 
-        ck*=1.001;
+        ck*=1.01;
 
 
     }
@@ -1314,7 +552,7 @@ void kb(unsigned char key, int x, int y)
     {
 
 
-        ck/=1.001;
+        ck/=1.01;
 
 
     }
@@ -1458,12 +696,6 @@ void kb(unsigned char key, int x, int y)
 
 
 
-    if (key==' ')
-    {
-
-        //if (clear_w==1) clear_w=0; else clear_w=1;
-
-    }
 
 
 
@@ -1481,6 +713,26 @@ void kb(unsigned char key, int x, int y)
 
     }
 
+
+    if (key=='t')
+    {
+
+        XYZ r0,a,b;
+
+    r0.x=x_[cross_map_ijk[0].i][cross_map_ijk[0].j][8];
+    r0.y=y_[cross_map_ijk[0].i][cross_map_ijk[0].j][8];
+    r0.z=z_[cross_map_ijk[0].i][cross_map_ijk[0].j][8];
+
+    a.x=x_[cross_map_ijk[0].i][cross_map_ijk[0].j][0]-r0.x;
+    a.y=y_[cross_map_ijk[0].i][cross_map_ijk[0].j][0]-r0.y;
+    a.z=z_[cross_map_ijk[0].i][cross_map_ijk[0].j][NZ-25]-r0.z;
+
+    b.x=x_[cross_map_ijk[1].i][cross_map_ijk[1].j][0]-r0.x;
+    b.y=y_[cross_map_ijk[1].i][cross_map_ijk[1].j][0]-r0.y;
+    b.z=z_[cross_map_ijk[1].i][cross_map_ijk[1].j][0]-r0.z;
+    animate_tracers_slice(r0,a,b);
+
+      }
 
     if (key=='/')
     {
@@ -1539,212 +791,8 @@ void filter_kplane(float var_[NX][NY][NZ],int k)
 
 
 
-float get_mean(float var_[NX][NY][NZ],int i0,int j0,int k0,int ri,int rj)
-{
-    int i,j,k;
 
 
-    int imin,imax,jmin,jmax;
-
-    imin=i_max(i0-ri,0);
-    jmin=i_max(j0-rj,0);
-
-    imax=i_min(i0-ri,NX-1);
-    jmax=i_min(j0-rj,NY-1);
-    int num=0;
-    float mean=0.0;
-    for (i=i0-ri;i<=i0+ri;i++)
-    {
-        for(j=j0-rj;j<=j0+rj;j++)
-        {
-
-
-            mean+=var_[i][j][k0];
-            num++;
-
-        }
-    }
-    return mean/num;
-
-}
-
-
-
-float get_2nd(float var_a[NX][NY][NZ],float var_b[NX][NY][NZ],float mean_a,float mean_b,int i0,int j0,int k0,int ri,int rj)
-{
-    int i,j,k;
-
-
-    int imin,imax,jmin,jmax;
-
-    imin=i_max(i0-ri,0);
-    jmin=i_max(j0-rj,0);
-
-    imax=i_min(i0-ri,NX-1);
-    jmax=i_min(j0-rj,NY-1);
-    int num=0;
-    float mean=0.0;
-    for (i=i0-ri;i<=i0+ri;i++)
-    {
-        for(j=j0-rj;j<=j0+rj;j++)
-        {
-
-
-            mean+=(var_a[i][j][k0]-mean_a)*(var_b[i][j][k0]-mean_b);
-            num++;
-
-        }
-    }
-    return mean/num;
-
-}
-
-
-XYZ get_index(float x,float y, float z)
-{
-
-    XYZ res;
-
-    res.x=x/(x_[10][10][10]-x_[9][9][9]);
-    res.y=y/(y_[10][10][10]-y_[9][9][9]);
-
-
-    int k=NZ-2;
-
-
-    int i=(int)(res.x);
-
-    int j=(int)(res.y);
-
-    while ((z_[i][j][k]>=z)&&(k>0))
-    {
-
-        k--;
-
-    }
-
-    float alpha=(z-z_[i][j][k])/(z_[i][j][k+1]-z_[i][j][k]);
-
-    if (alpha>1.0) alpha=1.0;
-
-    if (alpha<0) alpha=0.0;
-    res.z=k+alpha;
-
-    return res;
-}
-
-float get_at_index(float arr_[NX][NY][NZ],XYZ indx)
-{
-    int i,j,k;
-    float ai,aj,ak;
-
-    i=(int) (indx.x);
-    j=(int) (indx.y);
-    k=(int) (indx.z);
-
-    ai=indx.x-i;
-    aj=indx.y-j;
-    ak=indx.z-k;
-
-
-    float res=((arr_[i][j][k]*(1.0-ai)+ai*arr_[i+1][j][k])*(1.0-aj)+
-            (arr_[i][j+1][k]*(1.0-ai)+ai*arr_[i+1][j+1][k])*(aj))*(1.0-ak)+
-            ((arr_[i][j][k+1]*(1.0-ai)+ai*arr_[i+1][j][k+1])*(1.0-aj)+
-            (arr_[i][j+1][k+1]*(1.0-ai)+ai*arr_[i+1][j+1][k+1])*(aj))*(ak);
-    return res;
-}
-
-
-
-
-
-
-void draw_tracers()
-{
-    int i,j;
-    // glEnable(GL_POINT_SMOOTH);
-
-    //  glEnable(GL_LINE_SMOOTH);
-
-    for (i=0;i<trace_num;i++)
-    {
-
-
-
-        glLineWidth(1.5);
-        glBegin(GL_LINE_STRIP);
-        for(j=0;j<TRACER_LEN;j++)
-        {
-
-            glPointSize(TRACER_LEN-j);
-            float c=(1.0*(TRACER_LEN-j))/(TRACER_LEN);
-
-            /*c=(1-j)*sqrt((tracers[i][1].x-tracers[i][2].x)*(tracers[i][1].x-tracers[i][2].x)+
-                    (tracers[i][1].y-tracers[i][2].y)*(tracers[i][1].y-tracers[i][2].y)+
-                    (tracers[i][1].z-tracers[i][2].z)*(tracers[i][1].z-tracers[i][2].z));*/
-            glColor3f(0.5+c,c,c);
-
-            glColor3f(tracers[i][j].z*1.8,tracers[i][j].z*1.6,tracers[i][j].z*1.6);
-
-            glVertex3f(render->sc_x*(tracers[i][j].x-render->tr_x),
-                       render->sc_z*(tracers[i][j].z-render->tr_z),
-                       render->sc_y*(tracers[i][j].y-render->tr_y));
-
-        }
-        glEnd();
-
-        /*    glPointSize(3.0);
-          glColor3f(tracers[i][0].z,0,0);
-          glBegin(GL_POINTS);
-          glVertex3f(render->sc_x*(tracers[i][0].x-render->tr_x),
-                     render->sc_z*(tracers[i][0].z-render->tr_z),
-                     render->sc_y*(tracers[i][0].y-render->tr_y));
-          glEnd();*/
-    }
-
-    //  glDisable(GL_POINT_SMOOTH);
-
-}
-
-
-void trace_tracers()
-{
-    int i,j;
-    for (i=0;i<trace_num;i++)
-    {
-
-        for (j=0;j<TRACER_LEN-1;j++)
-        {
-            XYZ indx;
-            indx=get_index(tracers[i][j].x,tracers[i][j].y,tracers[i][j].z);
-
-            float u,v,w;
-
-            u=get_at_index(u_t,indx);
-            v=get_at_index(v_t,indx);
-            w=get_at_index(w_t,indx);
-
-
-            // fprintf(stderr,"u=%f v=%f w=%f \n",u,v,w);
-
-            tracers[i][j+1].x=tracers[i][j].x+0.5*u;
-            tracers[i][j+1].y=tracers[i][j].y+0.5*v;
-            tracers[i][j+1].z=tracers[i][j].z+0.5*w;
-        }
-    }
-
-}
-void rearrange_tracers()
-{
-    for (int i=0;i<trace_num;i++)
-    {
-        tracers[i][0].x=(x_[NX-1][0][0]*rand())/RAND_MAX;//curr_coord+(1.0*rand())/RAND_MAX;//(x_[NX-1][0][0]*rand())/RAND_MAX;
-        tracers[i][0].y=(y_[0][NY-1][0]*rand())/RAND_MAX;
-        tracers[i][0].z=curr_coord*0.1;//0.1+0.75*(z_[0][0][NZ-1]*rand())/RAND_MAX;
-
-    }
-    animate_tracers();
-}
 
 
 
@@ -1831,46 +879,6 @@ void build_cross()
 }
 
 
-XYZ cross_prod(XYZ a,XYZ b)
-{
-XYZ res;
-
-res.x=a.y*b.z-a.z*b.y;
-res.y=-a.x*b.z+a.z*b.x;
-res.z=a.x*b.y-a.y*b.x;
-return res;
-}
-
-float vec_len(XYZ a)
-{
-
-    return sqrt(a.x*a.x+a.y*a.y+a.z*a.z);
-}
-
-float dot_prod(XYZ a, XYZ b)
-{
-
-    return a.x*b.x+a.y*b.y+a.z*b.z;
-}
-
-XYZ scale_vec(XYZ a,float sc)
-{
-    XYZ res;
-
-    res.x=a.x*sc;
-    res.y=a.y*sc;
-    res.z=a.z*sc;
-    return res;
-}
-XYZ add_vec(XYZ a,XYZ b)
-{
-    XYZ res;
-
-    res.x=a.x+b.x;
-    res.y=a.y+b.y;
-    res.z=a.z+b.z;
-    return res;
-}
 
 
 
@@ -1882,7 +890,7 @@ void draw_cross_hum()
 
     glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
     glColor3f(0,0,0);
-    glBegin(GL_TRIANGLE_STRIP);
+    glBegin(GL_LINE_STRIP);
 
     for (i=0;i<cross_map_num;i++)
     {
@@ -1895,7 +903,7 @@ void draw_cross_hum()
         if (i==curr_prof)
             glColor3f(1,1,1);
 
-        glVertex3f(render->sc_x*(xloc-render->tr_x),render->sc_z*(zloc-render->tr_z),render->sc_y*(yloc-render->tr_y));
+     //   glVertex3f(render->sc_x*(xloc-render->tr_x),render->sc_z*(zloc-render->tr_z),render->sc_y*(yloc-render->tr_y));
 
         xloc=x_[cross_map_ijk[i].i][cross_map_ijk[i].j][0];
         yloc=y_[cross_map_ijk[i].i][cross_map_ijk[i].j][0];
@@ -1925,14 +933,14 @@ void draw_cross_hum()
             float yloc=cross[i][k].y;
             float zloc=cross[i][k].z;
 
-            render->get_color(cross[i][k].hum[0],&(render->tbls[0]),0.0f,0.025f);
+            render->get_color(cross[i][k].hum[2],&(render->tbls[0]),0.0f,1.5f);
             glVertex3f(render->sc_x*(xloc-render->tr_x),render->sc_z*(zloc-render->tr_z),render->sc_y*(yloc-render->tr_y));
 
             xloc=cross[i+1][k].x;
             yloc=cross[i+1][k].y;
             zloc=cross[i+1][k].z;
 
-            render->get_color(cross[i+1][k].hum[0],&(render->tbls[0]),0.0f,0.025f);
+            render->get_color(cross[i+1][k].hum[2],&(render->tbls[0]),0.0f,1.5f);
             glVertex3f(render->sc_x*(xloc-render->tr_x),render->sc_z*(zloc-render->tr_z),render->sc_y*(yloc-render->tr_y));
 
 
@@ -1945,7 +953,7 @@ void draw_cross_hum()
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-    glLineWidth(0.5);
+    glLineWidth(1.5);
     glDepthMask(false);
 //glDisable(GL_DEPTH_TEST);
     for ( i=0;i<cross_elem_num-1;i++)
@@ -1969,27 +977,27 @@ void draw_cross_hum()
             int ii,kk;
 
             ii=i; kk=k;
-            r_t[0].r=cross[ii][kk].hum[0];
+            r_t[0].r=cross[ii][kk].hum[2];
 
             ii=i+1; kk=k;
-            r_t[1].r=cross[ii][kk].hum[0];
+            r_t[1].r=cross[ii][kk].hum[2];
 
             ii=i+1; kk=k+1;
-            r_t[2].r=cross[ii][kk].hum[0];
+            r_t[2].r=cross[ii][kk].hum[2];
 
             ii=i; kk=k+1;
-            r_t[3].r=cross[ii][kk].hum[0];
+            r_t[3].r=cross[ii][kk].hum[2];
             ii=i; kk=k;
-            r_t[4].r=cross[ii][kk].hum[0];
+            r_t[4].r=cross[ii][kk].hum[2];
 
-float ddt=0.0025;
+float ddt=0.08;
 
-float iso=ck/250;
-            for (int nnn=0;nnn<20;nnn++)
+float iso=ck;///2;
+            for (int nnn=0;nnn<40;nnn++)
             {
 
            iso-=ddt;
-            ddt*=0.96;
+            ddt*=0.97;
 
             XYZ pp[2];
             int pp_num=0;
@@ -2043,7 +1051,7 @@ float iso=ck/250;
         glEnd();
     }
 
-// glEnable(GL_DEPTH_TEST);
+ glEnable(GL_DEPTH_TEST);
 
     glDisable(GL_LINE_SMOOTH);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
@@ -2080,8 +1088,8 @@ k=0;
 
             XYZ uu;
 
-            uu.x=2.0*cross[i][k].u[1];
-            uu.y=2.0*cross[i][k].v[1];
+            uu.x=2.0*cross[i][k].u[2];
+            uu.y=2.0*cross[i][k].v[2];
             uu.z=0.0;//2.0*cross[i][k].w[1];
 
 
@@ -2111,7 +1119,7 @@ k=0;
             arrow1=add_vec(uu_s,tangent);
             arrow2=add_vec(uu_s,scale_vec(tangent,-1.0));
 
-
+/*
                 glBegin(GL_LINES);
             glColor3f(0,0,0);
             glVertex3f(render->sc_x*(rloc.x-render->tr_x),render->sc_z*(rloc.z-render->tr_z),render->sc_y*(rloc.y-render->tr_y));
@@ -2127,7 +1135,7 @@ k=0;
 
 
             glEnd();
-
+*/
 
         }
 
@@ -2402,84 +1410,7 @@ k=0;
  glDepthMask(true);
 }
 
-void animate_tracers()
-{
-    int i,j;
-    for (i=0;i<trace_num;i++)
-    {
 
-        if  (((rand()*1.0)/RAND_MAX)<0.02)//((tracers[i][0].x<curr_coord)||(tracers[i][0].x>curr_coord+1.0))
-        {
-            tracers[i][0].x=(x_[NX-1][0][0]*rand())/RAND_MAX;//curr_coord+(1.0*rand())/RAND_MAX;//
-            tracers[i][0].y=(y_[0][NY-1][0]*rand())/RAND_MAX;
-            tracers[i][0].z=0.1;//0.1+0.75*(z_[0][0][NZ-1]*rand())/RAND_MAX;
-        }
-        for (j=0;j<TRACER_LEN-1;j++)
-            // j=0;
-        {
-            XYZ indx;
-            indx=get_index(tracers[i][j].x,tracers[i][j].y,tracers[i][j].z);
-
-            float u,v,w,um,vm,wm,tmp;
-
-            u=get_at_index(u_[0],indx);
-            v=get_at_index(v_[0],indx);
-            w=get_at_index(w_[0],indx);
-
-            um=get_at_index(u_t,indx);
-            vm=get_at_index(v_t,indx);
-            wm=get_at_index(w_t,indx);
-
-            tmp=get_at_index(temp_[0],indx);
-
-            u=um;//(1.0-alpha_u)*um;
-            v=vm;///(1.0-alpha_u)*vm;
-            w=wm;//(1.0-alpha_u)*wm;
-            // fprintf(stderr,"u=%f v=%f w=%f \n",u,v,w);
-            if (j==0)
-            {
-                tracers[i][j].x=tracers[i][j].x+1.5*0.3*u;
-                tracers[i][j].y=tracers[i][j].y+1.5*0.3*v;
-                tracers[i][j].z=tracers[i][j].z+1.5*0.3*w;
-
-
-                XYZ col=render->get_color(tmp,&(render->tbls[0]),12.0,12.5);
-
-
-                tracers[i][j].r=col.x;
-                tracers[i][j].g=col.y;
-                tracers[i][j].b=col.z;
-
-                indx=get_index(tracers[i][j].x,tracers[i][j].y,tracers[i][j].z);
-
-                u=get_at_index(u_[0],indx);
-                v=get_at_index(v_[0],indx);
-                w=get_at_index(w_[0],indx);
-                tmp=get_at_index(temp_[0],indx);
-
-                um=get_at_index(u_t,indx);
-                vm=get_at_index(v_t,indx);
-                wm=get_at_index(w_t,indx);
-
-                u=um;//+(1.0-alpha_u)*um;
-                v=vm;//+(1.0-alpha_u)*vm;
-                w=wm;//+(1.0-alpha_u)*wm;
-            }
-            tracers[i][j+1].x=tracers[i][j].x+1.5*0.3*u;
-            tracers[i][j+1].y=tracers[i][j].y+1.5*0.3*v;
-            tracers[i][j+1].z=tracers[i][j].z+1.5*0.3*w;
-
-            XYZ col=render->get_color(tmp,&(render->tbls[0]),12.0,12.5);
-
-
-            tracers[i][j].r=col.x;
-            tracers[i][j].g=col.y;
-            tracers[i][j].b=col.z;
-
-        }
-    }
-
-}
 
 void draw_prof(int i,int j)
 {
@@ -2624,11 +1555,13 @@ void init()
 
     for(int i=0;i<cross_map_num;i++)
     {
-        cross_map_ijk[i].i=i*20+10; cross_map_ijk[i].j=i*5+10;
+        cross_map_ijk[i].i=i*17+10; cross_map_ijk[i].j=i*7+10;
     }
 
-/*
-    //  convert_uvw_text("c:\\user\\devel\\tecio_loader\\tecload\\1761_rough_uvw.dat",0);
+
+
+
+   // convert_uvw_text("c:\\user\\devel\\tecio_loader\\tecload\\1762_step_hyb_humid.dat",0);
 
 
     // convert_sat_text("c:\\user\\devel\\tecio_loader\\tecload\\ground.dat");
@@ -2636,48 +1569,32 @@ void init()
 
     load_sat_bin("c:\\user\\devel\\tecio_loader\\tecload\\ground.dat.bin");
 
-    load_uvw_bin("c:\\user\\devel\\tecio_loader\\tecload\\1761_rough_uvw.dat.bin",0);
+    load_uvw_bin("c:\\user\\devel\\tecio_loader\\tecload\\1761_rough_uvw.dat.bin",1);
     load_uvw_bin("c:\\user\\devel\\tecio_loader\\tecload\\1761_uvw.dat.bin",1);
-    load_uvw_bin("c:\\user\\devel\\tecio_loader\\tecload\\2321_uvw.dat.bin",2);
+    load_uvw_bin("c:\\user\\devel\\tecio_loader\\tecload\\1762_step_hyb_humid.dat.bin",2);
 
+//    load_uvw_bin("c:\\user\\devel\\tecio_loader\\tecload\\44444.dat.bin",1);
 
     //  convert_uvw_text("c:\\user\\devel\\tecio_loader\\tecload\\1761_uvw.dat");
     //    load_xyz_text("c:\\user\\devel\\tecio_loader\\tecload\\uvw_tmean_hyb.dat");
     load_xyz_bin("c:\\user\\devel\\tecio_loader\\tecload\\xyz.dat.bin");
     load_uvw_time_bin("c:\\user\\devel\\tecio_loader\\tecload\\uvw_tmean_hyb.dat.bin");
 
-*/
-
-    for (int i=0;i<NX;i++)
-    {
-
-        for (int j=0;j<NY;j++)
-        {
-
-            for (int k=0;k<NZ;k++)
-            {
-                humid_[0][i][j][k]+=(v_[0][i][j][k]-v_[1][i][j][k])*0.023;
 
 
-            }
-        }
 
-    }
-
-    // load_piv("c:\\user\\devel\\tecio_loader\\tecload\\xyz.dat");
-    //  load_piv("input.dat");
-    //  sweep_init();
-    /*
- test_spline();	*/
     render=new myRender();
     render->tr_x=(x_[0][0][0]+x_[NX-1][0][0])*0.5;
     render->tr_y=(y_[0][0][0]+y_[0][NY-1][0])*0.5;
     render->tr_z=(z_[0][0][0]+z_[0][0][NZ-1])*0.5;
 
-    render->sc_x=1.50*0.75;
+  /*  render->sc_x=1.50*0.75;
     render->sc_y=1.50*0.75;
     render->sc_z=3.6*0.75;
-
+*/
+    render->sc_x=1.5*0.75;
+        render->sc_y=1.5*0.75;
+     render->sc_z=3.0*0.75;
 
 
     int i,j,k;
@@ -2692,7 +1609,7 @@ void init()
     trace_tracers();
 
 
-    ck=12.5;
+   // ck=12.5;
 
     /*
     for (i=0;i<NX;i++)

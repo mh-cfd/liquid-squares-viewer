@@ -10,7 +10,8 @@ SOURCES += \
     globals.cpp \
     mydata.cpp \
     myscreenshot.cpp \
-    vsofont.c
+    vsofont.c \
+    mytracers.cpp
 
 HEADERS += \
     globals.h \
@@ -19,7 +20,8 @@ HEADERS += \
     mydata.h \
     myscreenshot.h \
     vsofont.h \
-    defines.h
+    defines.h \
+    mytracers.h
 
 LIBS+= -lopengl32 -lglu32 -lglut32
 

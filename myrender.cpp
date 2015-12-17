@@ -1,5 +1,7 @@
 #include "myrender.h"
 
+myRender *render;
+
 myRender::myRender()
 {
     sc_x=0.1;
@@ -13,7 +15,7 @@ myRender::myRender()
 
 /*temp*/
 
-    tbls[0].r[0]=0.0; tbls[0].g[0]=35.0/255.0; tbls[0].b[0]=178.0/255.0; tbls[0].x[0]=0;
+ /*   tbls[0].r[0]=0.0; tbls[0].g[0]=35.0/255.0; tbls[0].b[0]=178.0/255.0; tbls[0].x[0]=0;
 
     tbls[0].r[1]=0.0; tbls[0].g[1]=85.0/255.0; tbls[0].b[1]=208.0/255.0; tbls[0].x[1]=10;
     tbls[0].r[2]=1.0; tbls[0].g[2]=1.0;         tbls[0].b[2]=1.0;         tbls[0].x[2]=80;
@@ -21,10 +23,10 @@ myRender::myRender()
 
     tbls[0].r[4]=1.0; tbls[0].g[4]=1.0; tbls[0].b[4]=0.0; tbls[0].x[4]=280;
     tbls[0].r[5]=1.0; tbls[0].g[5]=0.0; tbls[0].b[5]=0.0; tbls[0].x[5]=400;
+*/
 
 
-
-  /*  tbls[0].r[0]=0.0; tbls[0].g[0]=0.0; tbls[0].b[0]=0.0;  tbls[0].x[0]=0;
+    tbls[0].r[0]=0.0; tbls[0].g[0]=0.0; tbls[0].b[0]=0.0;  tbls[0].x[0]=0;
     tbls[0].r[1]=0.0; tbls[0].g[1]=0.0; tbls[0].b[1]=1.0;  tbls[0].x[1]=20;
 
     tbls[0].r[2]=1.0; tbls[0].g[2]=1; tbls[0].b[2]=1; tbls[0].x[2]=80;
@@ -39,11 +41,11 @@ myRender::myRender()
 
 
     tbls[0].r[0]=1.0; tbls[0].g[0]=1.0; tbls[0].b[0]=1.0;  tbls[0].x[0]=0;
-    tbls[0].r[1]=0.0; tbls[0].g[1]=85.0/255.0; tbls[0].b[1]=208.0/255.0; tbls[0].x[1]=100;
-    tbls[0].r[2]=0.0; tbls[0].g[2]=189.0/255.0; tbls[0].b[2]=197.0/255.0; tbls[0].x[2]=200;
-    tbls[0].r[3]=1.0; tbls[0].g[3]=1.0; tbls[0].b[3]=0.0; tbls[0].x[3]=300;
+    tbls[0].r[1]=0.0; tbls[0].g[1]=85.0/255.0; tbls[0].b[1]=208.0/255.0; tbls[0].x[1]=20;
+    tbls[0].r[2]=0.0; tbls[0].g[2]=189.0/255.0; tbls[0].b[2]=197.0/255.0; tbls[0].x[2]=80;
+    tbls[0].r[3]=1.0; tbls[0].g[3]=1.0; tbls[0].b[3]=0.0; tbls[0].x[3]=150;
     tbls[0].r[4]=1.0; tbls[0].g[4]=0.0; tbls[0].b[4]=0.0; tbls[0].x[4]=400;
-*/
+
     tbls[0].dx=1.0/400;
     tbls[0].x_num=400;
     int nn=0;

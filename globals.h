@@ -25,7 +25,7 @@
  #define W_HEIGHT 800
 
  #define RES2_MIN 0.000001
-#define TRACER_LEN 25
+#define TRACER_LEN 80
 
 
  //a,b-components of impulse, f-RHS from prev timestep
@@ -49,6 +49,7 @@ typedef struct
 {
  float x,y,z;
  float r,g,b;
+ float nx,ny,nz;
 }XYZ;
 
 typedef struct
@@ -103,7 +104,7 @@ extern float dxy_cross;//step in cross_section
 extern cross_elem cross[1000][NZ];
 extern  int cross_elem_num;
 
-extern XYZ tracers[2000][TRACER_LEN];
+extern XYZ tracers[4000][TRACER_LEN];
 extern int trace_num;
 
  extern double dt;
@@ -125,5 +126,37 @@ extern int trace_num;
 
 
  extern double r_2g;
+
+
+extern int view;
+
+extern  int k_curr;
+extern  double ck;
+
+
+extern  int i_prof[10];
+extern  int j_prof[10];
+
+extern  int curr_prof;
+extern  int prof_num;
+
+extern  int screen_count;
+extern  float alpha_u;
+
+extern  float curr_coord;
+
+
+ int i_min(int a,int b);
+ int i_max(int a,int b);
+ XYZ cross_prod(XYZ a,XYZ b);
+ float vec_len(XYZ a);
+
+ float dot_prod(XYZ a, XYZ b);
+ XYZ scale_vec(XYZ a,float sc);
+ XYZ add_vec(XYZ a,XYZ b);
+ XYZ get_index(float x,float y, float z);
+ float get_at_index(float arr_[NX][NY][NZ],XYZ indx);
+ float get_mean(float var_[NX][NY][NZ],int i0,int j0,int k0,int ri,int rj);
+ float get_2nd(float var_a[NX][NY][NZ],float var_b[NX][NY][NZ],float mean_a,float mean_b,int i0,int j0,int k0,int ri,int rj);
 
 #endif

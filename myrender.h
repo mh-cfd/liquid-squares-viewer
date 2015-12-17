@@ -29,5 +29,5 @@ public:
     color_table tbls[20];
 
 };
-
+extern myRender *render;
 #endif // MYRENDER_H
